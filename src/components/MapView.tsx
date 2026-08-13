@@ -5,6 +5,7 @@ import "leaflet.markercluster";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import { CATEGORY_INFO, ITEMS, type Category, type Item } from "../data/silksong";
+import { zoneName } from "../data/helpers";
 import { MAP_CONFIG } from "../lib/mapConfig";
 
 interface MapViewProps {
@@ -30,7 +31,7 @@ export default function MapView({ selected, onSelect, visible }: MapViewProps) {
       crs: L.CRS.Simple,
       center: MAP_CONFIG.initialCenter as L.LatLngTuple,
       zoom: MAP_CONFIG.initialZoom,
-      minZoom: -1,
+      minZoom: MAP_CONFIG.minZoom,
       maxZoom: MAP_CONFIG.maxZoom,
       maxBounds: L.latLngBounds(MAP_CONFIG.bounds as L.LatLngTuple[]),
       zoomControl: false,
@@ -43,7 +44,8 @@ export default function MapView({ selected, onSelect, visible }: MapViewProps) {
       tileSize: MAP_CONFIG.tileSize,
       zoomReverse: MAP_CONFIG.zoomReverse,
       maxZoom: MAP_CONFIG.serverMaxZoom,
-      minZoom: 0,
+      minZoom: MAP_CONFIG.minZoom,
+      errorTileUrl: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
       attribution: MAP_CONFIG.attribution,
       bounds: L.latLngBounds(MAP_CONFIG.bounds as L.LatLngTuple[]),
     }).addTo(map);
@@ -58,7 +60,7 @@ export default function MapView({ selected, onSelect, visible }: MapViewProps) {
         iconCreateFunction: (cluster) =>
           L.divIcon({
             className: "pin-cluster",
-            html: `<div class="pin-cluster-bubble">${cluster.getChildCount()}</div>`,
+            html: `<div class="pin-cluster-bubble" style="background:${CATEGORY_INFO[cat].color}">${cluster.getChildCount()}</div>`,
             iconSize: [40, 40],
           }),
       });
@@ -71,6 +73,12 @@ export default function MapView({ selected, onSelect, visible }: MapViewProps) {
         icon: makePin(item.category),
         title: item.name,
         riseOnHover: true,
+      });
+      marker.bindPopup(makePopupHtml(item), {
+        className: "detail-popup",
+        closeButton: false,
+        offset: L.point(0, -14),
+        maxWidth: 320,
       });
       marker.on("click", () => onSelect(item));
       markersRef.current[item.id] = marker;
@@ -117,7 +125,8 @@ export default function MapView({ selected, onSelect, visible }: MapViewProps) {
       el?.classList.add("pin-selected");
       const group = groupsRef.current[selected.category];
       if (!map.hasLayer(group)) map.addLayer(group);
-      map.flyTo([selected.x, selected.y] as L.LatLngTuple, 1, { duration: 1 });
+      map.panTo([selected.x, selected.y] as L.LatLngTuple);
+      marker.openPopup();
     }
 
     selectedRef.current = selected;
@@ -127,7 +136,7 @@ export default function MapView({ selected, onSelect, visible }: MapViewProps) {
     const map = mapRef.current;
     if (!map) return;
     const z = Math.round(map.getZoom() + delta);
-    map.setZoom(Math.max(-1, Math.min(MAP_CONFIG.maxZoom, z)));
+    map.setZoom(Math.max(MAP_CONFIG.minZoom, Math.min(MAP_CONFIG.maxZoom, z)));
   }
 
   function resetView() {
@@ -164,4 +173,23 @@ function makePin(category: Category): L.DivIcon {
     iconSize: [26, 26],
     iconAnchor: [13, 13],
   });
+}
+
+function makePopupHtml(item: Item): string {
+  const cat = CATEGORY_INFO[item.category];
+  return `
+    <div class="detail-popup-inner">
+      <div class="detail-popup-head">
+        <span class="detail-icon" style="background:${cat.color}">${cat.icon}</span>
+        <div class="detail-popup-titles">
+          <h3 class="detail-title">${item.name}</h3>
+          <span class="detail-category" style="color:${cat.color}">${cat.label}</span>
+        </div>
+      </div>
+      <p class="detail-desc">${item.description}</p>
+      <div class="detail-zone">
+        <span class="detail-zone-label">¿Dónde está?</span>
+        <span class="detail-zone-name">${zoneName(item.zoneId)}</span>
+      </div>
+    </div>`;
 }

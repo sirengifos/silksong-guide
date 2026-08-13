@@ -2,7 +2,6 @@ import { useState } from "react";
 import MapView from "./components/MapView";
 import SearchBar from "./components/SearchBar";
 import ZoneList from "./components/ZoneList";
-import DetailCard from "./components/DetailCard";
 import { CATEGORY_INFO, type Category, type Item } from "./data/silksong";
 import "./App.css";
 
@@ -54,10 +53,29 @@ export default function App() {
             <button
               key={cat}
               type="button"
-              className={`legend-chip ${visible.has(cat) ? "legend-chip-active" : ""}`}
+              role="checkbox"
+              aria-checked={visible.has(cat)}
+              className={`legend-chip ${visible.has(cat) ? "legend-chip-active" : "legend-chip-inactive"}`}
               style={{ borderColor: CATEGORY_INFO[cat].color }}
               onClick={() => toggleCategory(cat)}
             >
+              <span
+                className={`legend-check ${visible.has(cat) ? "legend-check-on" : ""}`}
+                style={visible.has(cat) ? { background: CATEGORY_INFO[cat].color } : undefined}
+              >
+                {visible.has(cat) && (
+                  <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true">
+                    <path
+                      d="M2 6.5 4.8 9 10 3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
+              </span>
               <span
                 className="legend-dot"
                 style={{ background: CATEGORY_INFO[cat].color }}
@@ -73,6 +91,13 @@ export default function App() {
             onClick={showAll}
           >
             Todas
+          </button>
+          <button
+            type="button"
+            className={`legend-chip legend-chip-all ${visible.size === 0 ? "legend-chip-active" : ""}`}
+            onClick={() => setVisible(new Set())}
+          >
+            Ninguna
           </button>
         </div>
       </header>
@@ -101,9 +126,6 @@ export default function App() {
           <MapView selected={selected} onSelect={handlePick} visible={visible} />
         ) : (
           <ZoneList selectedId={selected?.id ?? null} onSelect={handlePick} />
-        )}
-        {selected && (
-          <DetailCard item={selected} onClose={() => setSelected(null)} />
         )}
       </main>
 

@@ -174,7 +174,6 @@ const OVERRIDES = {
   "Simple Key #3": "Llave sencilla #3",
   "Simple Key #4": "Llave sencilla #4",
   "Pristine Core": "Núcleo prístino",
-  "Pale Rosary Necklace": "Collar de rosarios pálido",
   "Break Chain": "Romper cadena",
   "Break Door": "Romper puerta",
   "Break Floor": "Romper suelo",

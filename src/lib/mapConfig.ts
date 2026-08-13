@@ -3,8 +3,8 @@ export const MAP_CONFIG = {
   tileSize: 1024,
   zoomReverse: true,
   serverMaxZoom: 7,
-  minZoom: -1,
-  maxZoom: 2,
+  minZoom: -8,
+  maxZoom: 6,
   bounds: [
     [-4096, 0],
     [0, 4096],
